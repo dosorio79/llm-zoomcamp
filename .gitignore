@@ -29,5 +29,17 @@ env/
 .vscode/
 .idea/
 
+# Databases
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.sqlite-shm
+*.sqlite-wal
+
+# Storage folder
+storage/
+
 # Logs
 *.log
