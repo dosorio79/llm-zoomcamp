@@ -2,7 +2,8 @@ from prompts import INSTRUCTIONS, USER_PROMPT_TEMPLATE
 from typing import Any
 
 class RAGBase:
-    def __init__(self, index: Any, 
+    def __init__(self, 
+                 index: Any, 
                  llm_client: Any, 
                  instructions: str = INSTRUCTIONS,
                  user_prompt_template: str = USER_PROMPT_TEMPLATE,
