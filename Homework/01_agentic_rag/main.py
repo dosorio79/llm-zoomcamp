@@ -1,10 +1,10 @@
 import os
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
-from rich.pretty import Pretty
 from rich.progress import (
     BarColumn,
     MofNCompleteColumn,
@@ -14,6 +14,7 @@ from rich.progress import (
     TimeElapsedColumn,
 )
 from rich.prompt import Prompt
+from rich.table import Table
 
 from src.agent import ask_agent
 from src.ingestion import (
@@ -111,8 +112,66 @@ def print_answer(answer: str) -> None:
     )
 
 
-def print_metadata(title: str, data: object) -> None:
-    console.print(Panel(Pretty(data), title=title, border_style="dim"))
+def get_metadata_value(data: object, key: str) -> object | None:
+    if isinstance(data, dict):
+        return data.get(key)
+
+    return getattr(data, key, None)
+
+
+def print_token_usage(data: object) -> None:
+    input_tokens = get_metadata_value(data, "input_tokens")
+    output_tokens = get_metadata_value(data, "output_tokens")
+    total_tokens = get_metadata_value(data, "total_tokens")
+
+    if total_tokens is None and isinstance(input_tokens, int) and isinstance(output_tokens, int):
+        total_tokens = input_tokens + output_tokens
+
+    rows = [
+        ("Model", get_metadata_value(data, "model")),
+        ("Input tokens", input_tokens),
+        ("Cached tokens", get_metadata_value(data, "cached_tokens")),
+        ("Output tokens", output_tokens),
+        ("Reasoning tokens", get_metadata_value(data, "reasoning_tokens")),
+        ("Total tokens", total_tokens),
+    ]
+
+    table = Table.grid(padding=(0, 2))
+    table.add_column(style="green")
+    table.add_column(style="cyan", justify="right")
+
+    for label, value in rows:
+        if value is not None:
+            table.add_row(label, str(value))
+
+    console.print(Panel(table, title="Token Usage", border_style="dim"))
+
+
+def format_cost(value: object) -> str:
+    try:
+        amount = Decimal(str(value))
+    except (InvalidOperation, TypeError, ValueError):
+        return str(value)
+
+    return f"${amount:.8f}"
+
+
+def print_cost(data: object) -> None:
+    rows = [
+        ("Input cost", get_metadata_value(data, "input_cost")),
+        ("Output cost", get_metadata_value(data, "output_cost")),
+        ("Total cost", get_metadata_value(data, "total_cost")),
+    ]
+
+    table = Table.grid(padding=(0, 2))
+    table.add_column(style="green")
+    table.add_column(style="cyan", justify="right")
+
+    for label, value in rows:
+        if value is not None:
+            table.add_row(label, format_cost(value))
+
+    console.print(Panel(table, title="Cost", border_style="dim"))
 
 
 def run_rag_loop() -> None:
@@ -132,7 +191,7 @@ def run_rag_loop() -> None:
         print_answer(result["answer"])
 
         if result.get("usage"):
-            print_metadata("Usage", result["usage"])
+            print_token_usage(result["usage"])
 
         console.print()
 
@@ -161,10 +220,10 @@ def run_agent_loop() -> None:
         print_answer(result["answer"])
 
         if result.get("tokens"):
-            print_metadata("Tokens", result["tokens"])
+            print_token_usage(result["tokens"])
 
         if result.get("cost") is not None:
-            console.print(Panel(str(result["cost"]), title="Cost", border_style="dim"))
+            print_cost(result["cost"])
 
         console.print()
 

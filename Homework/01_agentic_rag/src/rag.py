@@ -81,6 +81,7 @@ class RAGBase:
             return {}
 
         return {
+            "model": self.model,
             "input_tokens": response.usage.input_tokens,
             "cached_tokens": response.usage.input_tokens_details.cached_tokens,
             "output_tokens": response.usage.output_tokens,
