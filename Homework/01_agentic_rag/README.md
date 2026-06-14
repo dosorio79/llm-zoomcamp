@@ -72,6 +72,7 @@ The menu offers:
 
 - `Build / rebuild index`: fetch lesson markdown, chunk it, and write the
   SQLite search index
+- `Clean index`: remove the local SQLite search index without rebuilding it
 - `Plain RAG`: retrieve once, build a context prompt, and answer
 - `Agentic RAG`: give the model a `search` tool and let it decide when to use it
 - `Exit`: close the CLI

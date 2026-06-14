@@ -18,6 +18,9 @@ from rich.table import Table
 
 from src.agent import ask_agent
 from src.ingestion import (
+    COMMIT_ID,
+    REPO_NAME,
+    REPO_OWNER,
     build_index,
     chunk_documents_for_indexing,
     load_documents_from_repo,
@@ -29,9 +32,10 @@ DB_PATH = "storage/chunk.db"
 ENV_PATH = Path(__file__).with_name(".env")
 MENU_CHOICES = {
     "1": "Build / rebuild index",
-    "2": "Plain RAG",
-    "3": "Agentic RAG",
-    "4": "Exit",
+    "2": "Clean index",
+    "3": "Plain RAG",
+    "4": "Agentic RAG",
+    "5": "Exit",
 }
 console = Console()
 
@@ -62,7 +66,12 @@ def ensure_index(rebuild: bool = False) -> None:
         console.print("[green]Index found.[/green]")
         return
 
-    console.print("[yellow]Index not found. Building index...[/yellow]")
+    console.print(
+        "[yellow]"
+        "Index not found. "
+        f"Building index from {REPO_OWNER}/{REPO_NAME} lessons at commit {COMMIT_ID}..."
+        "[/yellow]"
+    )
 
     with Progress(
         SpinnerColumn(),
@@ -98,6 +107,15 @@ def ensure_index(rebuild: bool = False) -> None:
         )
 
     console.print("[green]Index built.[/green]")
+
+
+def clean_index() -> None:
+    if os.path.exists(DB_PATH):
+        os.remove(DB_PATH)
+        console.print(f"[green]Removed index at {DB_PATH}.[/green]")
+        return
+
+    console.print(f"[yellow]No index found at {DB_PATH}.[/yellow]")
 
 
 def print_answer(answer: str) -> None:
@@ -268,9 +286,11 @@ def main() -> None:
         if choice == "1":
             run_index_setup(rebuild=True)
         elif choice == "2":
+            clean_index()
+        elif choice == "3":
             if run_index_setup(rebuild=False):
                 run_rag_loop()
-        elif choice == "3":
+        elif choice == "4":
             if run_index_setup(rebuild=False):
                 run_agent_loop()
         else:
