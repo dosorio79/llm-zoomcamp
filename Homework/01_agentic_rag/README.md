@@ -129,7 +129,10 @@ ToyAIKit also provides cost calculation helpers. This repo keeps pricing in
 the homework/demo code. Both plain RAG and agentic RAG use that same local
 pricing helper for consistent cost reporting. The bundled price table uses
 standard short-context text rates from the OpenAI API pricing page; check
-OpenAI's pricing page before relying on it for billing-sensitive work.
+OpenAI's pricing page before relying on it for billing-sensitive work:
+
+- https://openai.com/api/pricing/
+- https://developers.openai.com/api/docs/pricing
 
 ## Useful Commands
 
