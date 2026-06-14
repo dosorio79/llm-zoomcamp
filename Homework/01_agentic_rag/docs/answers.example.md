@@ -1,9 +1,12 @@
 # Homework 1 - Answers
 
+Use this as a local template for recording your selected homework answers.
+Keep the filled copy in `docs/answers.md`; that file is ignored by git.
+
 ## Q1. How many lesson pages?
 
 * [ ] 24
-* [x] 72
+* [ ] 72
 * [ ] 240
 * [ ] 720
 
@@ -20,7 +23,7 @@ Query:
 What's the filename of the first result?
 
 * [ ] `01-agentic-rag/lessons/03-rag.md`
-* [x] `01-agentic-rag/lessons/14-agentic-loop.md`
+* [ ] `01-agentic-rag/lessons/14-agentic-loop.md`
 * [ ] `04-evaluation/lessons/13-llm-as-judge.md`
 * [ ] `06-best-practices/lessons/02-hybrid-search.md`
 
@@ -37,7 +40,7 @@ Query:
 How many input (prompt) tokens were sent to the model?
 
 * [ ] 700
-* [x] 7000
+* [ ] 7000
 * [ ] 70000
 * [ ] 700000
 
@@ -60,7 +63,7 @@ chunks = chunk_documents(
 How many chunks do you get?
 
 * [ ] 70
-* [x] 295
+* [ ] 295
 * [ ] 1100
 * [ ] 4500
 
@@ -73,9 +76,9 @@ How many chunks do you get?
 Compared with Q3, how many fewer input tokens does the chunked version send?
 
 * [ ] about the same
-* [x] 3× fewer
-* [ ] 10× fewer
-* [ ] 30× fewer
+* [ ] 3x fewer
+* [ ] 10x fewer
+* [ ] 30x fewer
 
 **Answer:**
 

@@ -24,6 +24,9 @@ env/
 # Jupyter
 .ipynb_checkpoints/
 
+# Local homework answers
+docs/answers.md
+
 # OS/editor files
 .DS_Store
 .vscode/
