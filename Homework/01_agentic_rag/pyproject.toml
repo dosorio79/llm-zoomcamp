@@ -8,4 +8,7 @@ dependencies = [
     "gitsource>=0.0.5",
     "minsearch>=0.1.0",
     "openai>=2.41.1",
+    "rich>=15.0.0",
+    "sqlitesearch>=0.1.0",
+    "toyaikit>=0.0.11",
 ]

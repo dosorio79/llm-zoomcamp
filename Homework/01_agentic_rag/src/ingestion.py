@@ -1,65 +1,80 @@
-import requests
+import os
+from collections.abc import Callable
 from typing import List, Any
-from minsearch import Index
 
+from sqlitesearch import TextSearchIndex
+from gitsource import GithubRepositoryDataReader, chunk_documents 
 
-def load_faq_data(docs_url: str = "https://datatalks.club/faq/json/courses.json", url_prefix: str = "https://datatalks.club/faq/") -> List[Any]:
-    """
-    Load FAQ data from DataTalks.club courses endpoint.
-    
-    Fetches the list of courses and their FAQ content from the DataTalks.club
-    FAQ JSON API, aggregating all documents into a single list.
-    
-    Each document contains:
-        - id: Unique identifier for the FAQ entry
-        - course: Course name (e.g., 'llm-zoomcamp')
-        - section: Topic section (e.g., 'General Course-Related Questions')
-        - question: The FAQ question
-        - answer: The FAQ answer
-    
-    Args:
-        docs_url: URL to the courses JSON endpoint.
-        url_prefix: URL prefix for individual course FAQ endpoints.
-    
-    Returns:
-        List[Any]: A list of FAQ documents aggregated from all courses.
-    """
-    response = requests.get(docs_url)
-    response.raise_for_status()
-    courses_raw = response.json()
-    print(f"Loaded {len(courses_raw)} courses")
-    documents: List[Any] = []
+# Repository configuration parameters
+REPO_OWNER = "DataTalksClub"
+REPO_NAME = "llm-zoomcamp"
+COMMIT_ID = "8c1834d"
+ALLOWED_EXTENSIONS = {"md"}
 
-    for course in courses_raw:
-        course_url = f"{url_prefix}{course['path']}"
-        print(f"Fetching: {course_url}")
-        course_response = requests.get(course_url)
-        course_response.raise_for_status()
-        course_content = course_response.json()
-        documents.extend(course_content)
-        print(f"Added {len(course_content)} documents from {course['course_name']} (course: {course['course']})")
-    print(f"Total documents loaded: {len(documents)}")
+# Index configuration parameters
+INDEX_TEXT_FIELDS = ["content"]
+INDEX_KEYWORD_FIELDS = ["filename"]
+
+# Chunking configuration parameters
+CHUNK_SIZE = 2000
+CHUNK_STEP = 1000
+
+# Database configuration parameters
+DB_PATH = "storage/chunk.db"
+
+def load_documents_from_repo():
+    reader = GithubRepositoryDataReader(
+    repo_owner=REPO_OWNER,
+    repo_name=REPO_NAME,
+    commit_id=COMMIT_ID,
+    allowed_extensions=ALLOWED_EXTENSIONS,
+    filename_filter=lambda path: "/lessons/" in path,
+)
+    files = reader.read()
+    
+    documents = []
+    for file in files:
+        doc = file.parse()
+        documents.append(doc)
     return documents
 
+def chunk_documents_for_indexing(documents: List[Any]) -> List[Any]:
+    chunks = chunk_documents(documents, size=CHUNK_SIZE, step=CHUNK_STEP)
+    return chunks
 
-def build_index(documents: List[Any], text_fields: List[str]= ["question", "section", "answer"], keyword_fields: List[str]= ["course"]) -> Any:
+
+def build_index(
+    chunks: List[Any],
+    text_fields: List[str] = INDEX_TEXT_FIELDS,
+    keyword_fields: List[str] = INDEX_KEYWORD_FIELDS,
+    db_path: str = DB_PATH,
+    progress_callback: Callable[[], None] | None = None,
+) -> Any:
     """
     Create and fit an Index with the provided documents.
     
     Args:
-        documents: List of documents to fit the index with.
+        chunks: List of document chunks to fit the index with.
         text_fields: List of field names to use as text fields in the index.
         keyword_fields: List of field names to use as keyword fields in the index.
+        db_path: Path to the database file for storing the index.
     
     Returns:
         Any: The fitted Index object.
     """
-    print(f"Building index with {len(documents)} documents")
-    print(f"Text fields: {text_fields}")
-    print(f"Keyword fields: {keyword_fields}")
-    index = Index(
+    db_dir = os.path.dirname(db_path)
+    if db_dir:
+        os.makedirs(db_dir, exist_ok=True)
+
+    index = TextSearchIndex(
         text_fields=text_fields,
-        keyword_fields=keyword_fields)
-    index.fit(documents)
-    print("Index built successfully")
+        keyword_fields=keyword_fields,
+        db_path=db_path)
+    
+    for doc in chunks:
+        index.add(doc)
+        if progress_callback:
+            progress_callback()
+    
+    index.close()
     return index
