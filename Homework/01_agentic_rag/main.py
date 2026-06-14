@@ -1,10 +1,7 @@
 import os
-from decimal import Decimal, InvalidOperation
+from collections.abc import Callable
 from pathlib import Path
 
-from rich.console import Console
-from rich.markdown import Markdown
-from rich.panel import Panel
 from rich.progress import (
     BarColumn,
     MofNCompleteColumn,
@@ -14,9 +11,9 @@ from rich.progress import (
     TimeElapsedColumn,
 )
 from rich.prompt import Prompt
-from rich.table import Table
 
 from src.agent import ask_agent
+from src.display import console, print_answer, print_cost, print_menu, print_token_usage
 from src.ingestion import (
     COMMIT_ID,
     REPO_NAME,
@@ -37,7 +34,9 @@ MENU_CHOICES = {
     "4": "Agentic RAG",
     "5": "Exit",
 }
-console = Console()
+ChatHistory = object | None
+ChatResult = tuple[dict, ChatHistory]
+TurnFunction = Callable[[str, ChatHistory], ChatResult]
 
 
 def load_env_file(env_path: Path = ENV_PATH) -> None:
@@ -118,110 +117,24 @@ def clean_index() -> None:
     console.print(f"[yellow]No index found at {DB_PATH}.[/yellow]")
 
 
-def print_answer(answer: str) -> None:
-    console.print()
-    console.print(
-        Panel(
-            Markdown(answer or "_No answer returned._"),
-            title="Answer",
-            border_style="cyan",
-            padding=(1, 2),
-        )
+def run_rag_turn(question: str, history: ChatHistory) -> ChatResult:
+    return ask_rag(question), history
+
+
+def run_agent_turn(question: str, history: ChatHistory) -> ChatResult:
+    result = ask_agent(
+        question=question,
+        previous_messages=history if isinstance(history, list) else None,
     )
+    return result, result.get("messages")
 
 
-def get_metadata_value(data: object, key: str) -> object | None:
-    if isinstance(data, dict):
-        return data.get(key)
-
-    return getattr(data, key, None)
-
-
-def print_token_usage(data: object) -> None:
-    input_tokens = get_metadata_value(data, "input_tokens")
-    output_tokens = get_metadata_value(data, "output_tokens")
-    total_tokens = get_metadata_value(data, "total_tokens")
-
-    if total_tokens is None and isinstance(input_tokens, int) and isinstance(output_tokens, int):
-        total_tokens = input_tokens + output_tokens
-
-    rows = [
-        ("Model", get_metadata_value(data, "model")),
-        ("Input tokens", input_tokens),
-        ("Cached tokens", get_metadata_value(data, "cached_tokens")),
-        ("Output tokens", output_tokens),
-        ("Reasoning tokens", get_metadata_value(data, "reasoning_tokens")),
-        ("Total tokens", total_tokens),
-    ]
-
-    table = Table.grid(padding=(0, 2))
-    table.add_column(style="green")
-    table.add_column(style="cyan", justify="right")
-
-    for label, value in rows:
-        if value is not None:
-            table.add_row(label, str(value))
-
-    console.print(Panel(table, title="Token Usage", border_style="dim"))
-
-
-def format_cost(value: object) -> str:
-    try:
-        amount = Decimal(str(value))
-    except (InvalidOperation, TypeError, ValueError):
-        return str(value)
-
-    return f"${amount:.8f}"
-
-
-def print_cost(data: object) -> None:
-    rows = [
-        ("Input cost", get_metadata_value(data, "input_cost")),
-        ("Output cost", get_metadata_value(data, "output_cost")),
-        ("Total cost", get_metadata_value(data, "total_cost")),
-    ]
-
-    table = Table.grid(padding=(0, 2))
-    table.add_column(style="green")
-    table.add_column(style="cyan", justify="right")
-
-    for label, value in rows:
-        if value is not None:
-            table.add_row(label, format_cost(value))
-
-    console.print(Panel(table, title="Cost", border_style="dim"))
-
-
-def run_rag_loop() -> None:
-    console.print("[bold cyan]Running plain RAG.[/bold cyan] Type 'exit' to return to the menu.\n")
-
-    while True:
-        question = Prompt.ask("[bold]Question[/bold]").strip()
-
-        if question.lower() in {"exit", "quit", "stop"}:
-            break
-
-        if not question:
-            continue
-
-        result = ask_rag(question)
-
-        print_answer(result["answer"])
-
-        if result.get("usage"):
-            print_token_usage(result["usage"])
-
-        if result.get("cost") is not None:
-            print_cost(result["cost"])
-
-        console.print()
-
-
-def run_agent_loop() -> None:
-    console.print("[bold cyan]Running agentic RAG.[/bold cyan] Type 'exit' to return to the menu.\n")
+def run_chat_loop(title: str, run_turn: TurnFunction, token_key: str) -> None:
+    console.print(
+        f"[bold cyan]Running {title}.[/bold cyan] Type 'exit' to return to the menu.\n"
+    )
 
     history = None
-
     while True:
         question = Prompt.ask("[bold]Question[/bold]").strip()
 
@@ -231,34 +144,17 @@ def run_agent_loop() -> None:
         if not question:
             continue
 
-        result = ask_agent(
-            question=question,
-            previous_messages=history,
-        )
-
-        history = result.get("messages")
+        result, history = run_turn(question, history)
 
         print_answer(result["answer"])
 
-        if result.get("tokens"):
-            print_token_usage(result["tokens"])
+        if result.get(token_key):
+            print_token_usage(result[token_key])
 
         if result.get("cost") is not None:
             print_cost(result["cost"])
 
         console.print()
-
-
-def print_menu() -> None:
-    menu = "\n".join(f"[bold]{key}[/bold]. {label}" for key, label in MENU_CHOICES.items())
-    console.print(
-        Panel(
-            menu,
-            title="LLM Zoomcamp RAG",
-            border_style="cyan",
-            padding=(1, 2),
-        )
-    )
 
 
 def run_index_setup(rebuild: bool) -> bool:
@@ -275,7 +171,7 @@ def main() -> None:
     load_env_file()
 
     while True:
-        print_menu()
+        print_menu(MENU_CHOICES)
         choice = Prompt.ask(
             "[bold]Choose an option[/bold]",
             choices=list(MENU_CHOICES),
@@ -289,10 +185,10 @@ def main() -> None:
             clean_index()
         elif choice == "3":
             if run_index_setup(rebuild=False):
-                run_rag_loop()
+                run_chat_loop("plain RAG", run_rag_turn, token_key="usage")
         elif choice == "4":
             if run_index_setup(rebuild=False):
-                run_agent_loop()
+                run_chat_loop("agentic RAG", run_agent_turn, token_key="tokens")
         else:
             break
 
