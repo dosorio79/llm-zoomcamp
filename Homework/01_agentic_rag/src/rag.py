@@ -4,6 +4,7 @@ from openai import OpenAI
 
 from .prompts import INSTRUCTIONS, USER_PROMPT_TEMPLATE
 from .retrival import search
+from .utils import calculate_openai_price
 
 
 class RAGBase:
@@ -57,9 +58,16 @@ class RAGBase:
         prompt = self.build_prompt(query, search_results)
         response = self.generate_response(prompt)
 
+        usage = self._get_response_usage(response)
+
         return {
             "answer": self._get_response_text(response),
-            "usage": self._get_response_usage(response),
+            "usage": usage,
+            "cost": calculate_openai_price(
+                model=self.model,
+                input_tokens=usage.get("input_tokens", 0),
+                output_tokens=usage.get("output_tokens", 0),
+            ),
             "sources": search_results,
         }
 

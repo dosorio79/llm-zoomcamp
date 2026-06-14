@@ -193,6 +193,9 @@ def run_rag_loop() -> None:
         if result.get("usage"):
             print_token_usage(result["usage"])
 
+        if result.get("cost") is not None:
+            print_cost(result["cost"])
+
         console.print()
 
 

@@ -7,6 +7,7 @@ from toyaikit.llm import OpenAIClient
 from toyaikit.chat.runners import OpenAIResponsesRunner
 
 from .tools import get_tools
+from .utils import calculate_openai_price
 
 
 def build_agent_runner() -> OpenAIResponsesRunner:
@@ -52,7 +53,11 @@ def run_agent(question: str, previous_messages: list[Any] | None = None) -> dict
     return {
         "answer": result.last_message,
         "tokens": result.tokens,
-        "cost": result.cost,
+        "cost": calculate_openai_price(
+            model=result.tokens.model,
+            input_tokens=result.tokens.input_tokens,
+            output_tokens=result.tokens.output_tokens,
+        ),
         "messages": result.all_messages,
     }
 
