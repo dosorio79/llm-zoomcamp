@@ -65,7 +65,7 @@ run either plain RAG or agentic RAG.
 Run it with:
 
 ```bash
-uv run python main.py
+make run
 ```
 
 The menu offers:
@@ -123,7 +123,7 @@ uv run python -m py_compile main.py src/*.py
 Run the standalone demo:
 
 ```bash
-uv run python main.py
+make run
 ```
 
 Open the notebook with your preferred Jupyter environment and run
