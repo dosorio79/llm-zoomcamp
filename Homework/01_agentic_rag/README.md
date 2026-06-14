@@ -113,6 +113,24 @@ For the demo index:
 5. Agentic RAG exposes search as a tool and lets the model make tool calls
    before producing the final answer.
 
+## Intentional Choices
+
+The standalone demo uses ToyAIKit for the agent loop and tool execution, but
+keeps the outer terminal workflow in this repo. This is intentional:
+
+- the app has a Rich menu that can switch between index management, plain RAG,
+  and agentic RAG
+- `exit`, `quit`, or `stop` returns to the menu instead of ending the whole
+  process
+- plain RAG and agentic RAG share the same answer, token, and cost display
+
+ToyAIKit also provides cost calculation helpers. This repo keeps pricing in
+`src/utils.py` instead so model prices are easy to inspect and update close to
+the homework/demo code. Both plain RAG and agentic RAG use that same local
+pricing helper for consistent cost reporting. The bundled price table uses
+standard short-context text rates from the OpenAI API pricing page; check
+OpenAI's pricing page before relying on it for billing-sensitive work.
+
 ## Useful Commands
 
 Compile-check the Python files:

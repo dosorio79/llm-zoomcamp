@@ -8,7 +8,12 @@ class ModelPrice(TypedDict):
 
 
 MODEL_PRICES: dict[str, ModelPrice] = {
-    # Prices are USD per 1M tokens.
+    # Standard short-context prices in USD per 1M tokens.
+    # Source: https://developers.openai.com/api/docs/pricing
+    "gpt-5.4-nano": {
+        "input": Decimal("0.20"),
+        "output": Decimal("1.25"),
+    },
     "gpt-5.4-mini": {
         "input": Decimal("0.75"),
         "output": Decimal("4.50"),
@@ -17,9 +22,17 @@ MODEL_PRICES: dict[str, ModelPrice] = {
         "input": Decimal("2.50"),
         "output": Decimal("15.00"),
     },
+    "gpt-5.4-pro": {
+        "input": Decimal("30.00"),
+        "output": Decimal("180.00"),
+    },
     "gpt-5.5": {
         "input": Decimal("5.00"),
         "output": Decimal("30.00"),
+    },
+    "gpt-5.5-pro": {
+        "input": Decimal("30.00"),
+        "output": Decimal("180.00"),
     },
 }
 
