@@ -1,7 +1,13 @@
-from ingestion import load_faq_data, build_index
-from rag_helper import RAGBase
 from openai import OpenAI
 from dotenv import load_dotenv
+
+try:
+    from .ingestion import load_faq_data, build_index
+    from .rag_helper import RAGBase
+except ImportError:
+    from ingestion import load_faq_data, build_index
+    from rag_helper import RAGBase
+
 load_dotenv()
 
 def main():

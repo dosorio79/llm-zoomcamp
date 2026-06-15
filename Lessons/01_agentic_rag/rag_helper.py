@@ -1,5 +1,10 @@
-from prompts import INSTRUCTIONS, USER_PROMPT_TEMPLATE
 from typing import Any
+
+try:
+    from .prompts import INSTRUCTIONS, USER_PROMPT_TEMPLATE
+except ImportError:
+    from prompts import INSTRUCTIONS, USER_PROMPT_TEMPLATE
+
 
 class RAGBase:
     def __init__(self, 

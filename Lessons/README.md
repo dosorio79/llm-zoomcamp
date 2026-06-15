@@ -12,12 +12,15 @@ A Retrieval-Augmented Generation (RAG) assistant for answering questions about [
 
 ```
 .
-├── ingestion.py      # Fetches FAQ data and builds the search index
-├── main.py           # Entry point: wires everything together and runs the CLI
-├── prompts.py        # System instructions and user prompt template
-├── rag_helper.py     # RAGBase class encapsulating search, prompt building, and LLM calls
-├── notebook.ipynb    # Exploratory notebook
-└── pyproject.toml    # Project metadata and dependencies
+├── .env.example      # Shared environment variable template
+├── pyproject.toml    # Shared project metadata and dependencies
+├── uv.lock           # Shared lockfile
+└── 01_agentic_rag/
+    ├── ingestion.py  # Fetches FAQ data and builds the search index
+    ├── main.py       # Entry point: wires everything together and runs the CLI
+    ├── prompts.py    # System instructions and user prompt template
+    ├── rag_helper.py # RAGBase class encapsulating search, prompt building, and LLM calls
+    └── notebooks/    # Exploratory notebooks
 ```
 
 ## Requirements
@@ -38,7 +41,7 @@ echo "OPENAI_API_KEY=sk-..." > .env
 ## Usage
 
 ```bash
-uv run python main.py
+uv run python 01_agentic_rag/main.py
 ```
 
 You will be prompted to enter a question. The assistant searches the FAQ index and returns an answer.
