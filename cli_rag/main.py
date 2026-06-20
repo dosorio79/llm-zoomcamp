@@ -26,7 +26,11 @@ from src.rag import ask_rag
 
 
 DB_PATH = "storage/chunk.db"
-ENV_PATH = Path(__file__).with_name(".env")
+APP_DIR = Path(__file__).resolve().parent
+ENV_PATHS = [
+    APP_DIR / ".env",
+    APP_DIR.parent / ".env",
+]
 MENU_CHOICES = {
     "1": "Build / rebuild index",
     "2": "Clean index",
@@ -39,7 +43,7 @@ ChatResult = tuple[dict, ChatHistory]
 TurnFunction = Callable[[str, ChatHistory], ChatResult]
 
 
-def load_env_file(env_path: Path = ENV_PATH) -> None:
+def load_env_file(env_path: Path) -> None:
     if not env_path.exists():
         return
 
@@ -55,6 +59,11 @@ def load_env_file(env_path: Path = ENV_PATH) -> None:
 
         if key and key not in os.environ:
             os.environ[key] = value
+
+
+def load_env_files(env_paths: list[Path] = ENV_PATHS) -> None:
+    for env_path in env_paths:
+        load_env_file(env_path)
 
 
 def ensure_index(rebuild: bool = False) -> None:
@@ -168,7 +177,7 @@ def run_index_setup(rebuild: bool) -> bool:
 
 
 def main() -> None:
-    load_env_file()
+    load_env_files()
 
     while True:
         print_menu(MENU_CHOICES)
