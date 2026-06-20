@@ -1,0 +1,14 @@
+[project]
+name = "cli-rag"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "gitsource>=0.0.5",
+    "minsearch>=0.1.0",
+    "openai>=2.41.1",
+    "rich>=15.0.0",
+    "sqlitesearch>=0.1.0",
+    "toyaikit>=0.0.11",
+]
