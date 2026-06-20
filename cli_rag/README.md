@@ -19,9 +19,9 @@ Create a local environment file:
 cp .env.example .env
 ```
 
-You can also keep a single shared `.env` in the repository root. The CLI loads
-`cli_rag/.env` first, then falls back to `../.env` without overriding variables
-already exported in your shell.
+You can also keep a shared `.env` in the repository root or in `Lessons/.env`.
+The CLI loads `cli_rag/.env` first, then falls back to `../.env` and
+`../Lessons/.env` without overriding variables already exported in your shell.
 
 Set your OpenAI API key:
 

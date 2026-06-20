@@ -30,6 +30,7 @@ APP_DIR = Path(__file__).resolve().parent
 ENV_PATHS = [
     APP_DIR / ".env",
     APP_DIR.parent / ".env",
+    APP_DIR.parent / "Lessons" / ".env",
 ]
 MENU_CHOICES = {
     "1": "Build / rebuild index",
