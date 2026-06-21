@@ -52,12 +52,9 @@ class RAGPipeline:
 
         raise ValueError(f"Unknown retriever mode: {mode}")
 
-    def search(self, query: str, top_k: int = 5) -> list[dict[str, Any]]:
+    def retrieve(self, query: str, top_k: int = 5) -> list[dict[str, Any]]:
         if not query or not query.strip():
             return []
-
-        if self.retriever_mode == "hybrid":
-            return self.retriever.retrieve(query=query, top_k=top_k)
 
         return self.retriever.search(query=query, top_k=top_k)
 
@@ -97,7 +94,7 @@ class RAGPipeline:
         )
 
     def run(self, query: str, top_k: int = 5) -> dict[str, Any]:
-        search_results = self.search(query=query, top_k=top_k)
+        search_results = self.retrieve(query=query, top_k=top_k)
         prompt = self.build_prompt(query, search_results)
         response = self.generate_response(prompt)
 
@@ -139,17 +136,6 @@ class RAGPipeline:
             "reasoning_tokens": response.usage.output_tokens_details.reasoning_tokens,
             "total_tokens": response.usage.total_tokens,
         }
-
-
-def search(
-    query: str,
-    top_k: int = 5,
-    mode: RetrieverMode = "text",
-) -> list[dict[str, Any]]:
-    """Search documents using the selected retriever mode."""
-    pipeline = RAGPipeline(retriever_mode=mode)
-    return pipeline.search(query=query, top_k=top_k)
-
 
 def ask_rag(
     question: str,

@@ -18,7 +18,7 @@ class HybridRetriever:
         self.vector_retriever = vector_retriever
         self.text_retriever = text_retriever
 
-    def retrieve(self, query, top_k=5):
+    def search(self, query, top_k=5):
         """
         Retrieve results from both the vector retriever and the text retriever.
 
@@ -37,6 +37,10 @@ class HybridRetriever:
         
         # Return the combined results as a list
         return list(combined_results.values())
+
+    def retrieve(self, query, top_k=5):
+        """Backward-compatible alias for search."""
+        return self.search(query=query, top_k=top_k)
     
     def rrf(self, query, top_k=5, k=60):
         """
