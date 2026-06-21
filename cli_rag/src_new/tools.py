@@ -1,5 +1,6 @@
 from toyaikit.tools import Tools
-from .retrieval import search
+
+from .rag_pipeline import search
 
 
 def get_tools():

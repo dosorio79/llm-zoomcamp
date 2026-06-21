@@ -1,24 +1,65 @@
-from typing import Any
+"""RAG retrieval pipeline orchestration."""
+
+from typing import Any, Literal, Protocol
 
 from openai import OpenAI
 
 from .prompts import INSTRUCTIONS, USER_PROMPT_TEMPLATE
-from .retrieval import search
+from .retriever.hybrid_retriever import HybridRetriever
+from .retriever.text_retriever import TextRetriever
+from .retriever.vector_retriever import VectorRetriever
 from .utils import calculate_openai_price
 
 
-class RAGBase:
+RetrieverMode = Literal["text", "vector", "hybrid"]
+
+
+class Retriever(Protocol):
+    def search(self, query: str, top_k: int = 5) -> list[dict[str, Any]]:
+        """Search for documents matching the query."""
+
+
+class RAGPipeline:
+    """Coordinate retriever selection, prompt building, and generation."""
+
     def __init__(
         self,
+        retriever_mode: RetrieverMode = "text",
         llm_client: Any | None = None,
         instructions: str = INSTRUCTIONS,
         user_prompt_template: str = USER_PROMPT_TEMPLATE,
         model: str = "gpt-5.4-mini",
-    ):
-        self.llm_client = llm_client or OpenAI()
+    ) -> None:
+        self.retriever_mode = retriever_mode
+        self.retriever = self.build_retriever(retriever_mode)
+        self.llm_client = llm_client
         self.instructions = instructions
         self.user_prompt_template = user_prompt_template
         self.model = model
+
+    def build_retriever(self, mode: RetrieverMode) -> Retriever:
+        if mode == "text":
+            return TextRetriever()
+
+        if mode == "vector":
+            return VectorRetriever()
+
+        if mode == "hybrid":
+            return HybridRetriever(
+                vector_retriever=VectorRetriever(),
+                text_retriever=TextRetriever(),
+            )
+
+        raise ValueError(f"Unknown retriever mode: {mode}")
+
+    def search(self, query: str, top_k: int = 5) -> list[dict[str, Any]]:
+        if not query or not query.strip():
+            return []
+
+        if self.retriever_mode == "hybrid":
+            return self.retriever.retrieve(query=query, top_k=top_k)
+
+        return self.retriever.search(query=query, top_k=top_k)
 
     def build_context(self, search_results: list[dict[str, Any]]) -> str:
         lines = []
@@ -48,13 +89,15 @@ class RAGBase:
             {"role": "user", "content": prompt},
         ]
 
-        return self.llm_client.responses.create(
+        llm_client = self.llm_client or OpenAI()
+
+        return llm_client.responses.create(
             model=self.model,
             input=messages,
         )
 
-    def rag(self, query: str, top_k: int = 5) -> dict[str, Any]:
-        search_results = search(query=query, top_k=top_k)
+    def run(self, query: str, top_k: int = 5) -> dict[str, Any]:
+        search_results = self.search(query=query, top_k=top_k)
         prompt = self.build_prompt(query, search_results)
         response = self.generate_response(prompt)
 
@@ -98,6 +141,21 @@ class RAGBase:
         }
 
 
-def ask_rag(question: str, top_k: int = 5) -> dict[str, Any]:
-    assistant = RAGBase()
-    return assistant.rag(query=question, top_k=top_k)
+def search(
+    query: str,
+    top_k: int = 5,
+    mode: RetrieverMode = "text",
+) -> list[dict[str, Any]]:
+    """Search documents using the selected retriever mode."""
+    pipeline = RAGPipeline(retriever_mode=mode)
+    return pipeline.search(query=query, top_k=top_k)
+
+
+def ask_rag(
+    question: str,
+    top_k: int = 5,
+    retriever_mode: RetrieverMode = "text",
+) -> dict[str, Any]:
+    """Ask the RAG pipeline a question."""
+    pipeline = RAGPipeline(retriever_mode=retriever_mode)
+    return pipeline.run(query=question, top_k=top_k)
