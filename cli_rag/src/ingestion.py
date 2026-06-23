@@ -73,6 +73,7 @@ def build_index(
     
     for doc in chunks:
         index.add(doc)
+        # for rich progress reporting, we can call the progress_callback after each document is added
         if progress_callback:
             progress_callback()
     
