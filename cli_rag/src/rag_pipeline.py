@@ -5,7 +5,7 @@ from typing import Any, Literal
 from openai import OpenAI
 
 from .prompts import INSTRUCTIONS, USER_PROMPT_TEMPLATE
-from .retriever import (
+from .retrieval import (
     BaseRetriever,
     HybridRetriever,
     SearchResult,

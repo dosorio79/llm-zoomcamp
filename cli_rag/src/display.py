@@ -8,7 +8,6 @@ from rich.table import Table
 
 console = Console()
 
-
 def print_answer(answer: str) -> None:
     console.print()
     console.print(

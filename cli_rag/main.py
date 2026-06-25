@@ -1,31 +1,12 @@
-import os
 from collections.abc import Callable
+import os
 from pathlib import Path
 
-from rich.progress import (
-    BarColumn,
-    MofNCompleteColumn,
-    Progress,
-    SpinnerColumn,
-    TextColumn,
-    TimeElapsedColumn,
-)
 from rich.prompt import Prompt
 
-from src.agent import ask_agent
 from src.display import console, print_answer, print_cost, print_menu, print_token_usage
-from src.ingestion import (
-    COMMIT_ID,
-    REPO_NAME,
-    REPO_OWNER,
-    build_index,
-    chunk_documents_for_indexing,
-    load_documents_from_repo,
-)
-from src.rag import ask_rag
 
 
-DB_PATH = "storage/chunk.db"
 APP_DIR = Path(__file__).resolve().parent
 ENV_PATHS = [
     APP_DIR / ".env",
@@ -33,8 +14,8 @@ ENV_PATHS = [
     APP_DIR.parent / "Lessons" / ".env",
 ]
 MENU_CHOICES = {
-    "1": "Build / rebuild index",
-    "2": "Clean index",
+    "1": "Set up database schema",
+    "2": "Reset database schema",
     "3": "Plain RAG",
     "4": "Agentic RAG",
     "5": "Exit",
@@ -67,71 +48,15 @@ def load_env_files(env_paths: list[Path] = ENV_PATHS) -> None:
         load_env_file(env_path)
 
 
-def ensure_index(rebuild: bool = False) -> None:
-    if rebuild and os.path.exists(DB_PATH):
-        os.remove(DB_PATH)
-
-    if os.path.exists(DB_PATH):
-        console.print("[green]Index found.[/green]")
-        return
-
-    console.print(
-        "[yellow]"
-        "Index not found. "
-        f"Building index from {REPO_OWNER}/{REPO_NAME} lessons at commit {COMMIT_ID}..."
-        "[/yellow]"
-    )
-
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        BarColumn(),
-        MofNCompleteColumn(),
-        TimeElapsedColumn(),
-        console=console,
-    ) as progress:
-        load_task = progress.add_task("Loading lesson files from GitHub", total=None)
-        documents = load_documents_from_repo()
-        progress.update(
-            load_task,
-            description=f"Loaded {len(documents)} lesson files",
-            total=1,
-            completed=1,
-        )
-
-        chunk_task = progress.add_task("Chunking lesson files", total=None)
-        chunks = chunk_documents_for_indexing(documents)
-        progress.update(
-            chunk_task,
-            description=f"Created {len(chunks)} chunks",
-            total=1,
-            completed=1,
-        )
-
-        index_task = progress.add_task("Indexing chunks", total=len(chunks))
-        build_index(
-            chunks,
-            db_path=DB_PATH,
-            progress_callback=lambda: progress.advance(index_task),
-        )
-
-    console.print("[green]Index built.[/green]")
-
-
-def clean_index() -> None:
-    if os.path.exists(DB_PATH):
-        os.remove(DB_PATH)
-        console.print(f"[green]Removed index at {DB_PATH}.[/green]")
-        return
-
-    console.print(f"[yellow]No index found at {DB_PATH}.[/yellow]")
-
-
 def run_rag_turn(question: str, history: ChatHistory) -> ChatResult:
+    from src.rag_pipeline import ask_rag
+
     return ask_rag(question), history
 
 
 def run_agent_turn(question: str, history: ChatHistory) -> ChatResult:
+    from src.agent import ask_agent
+
     result = ask_agent(
         question=question,
         previous_messages=history if isinstance(history, list) else None,
@@ -167,11 +92,18 @@ def run_chat_loop(title: str, run_turn: TurnFunction, token_key: str) -> None:
         console.print()
 
 
-def run_index_setup(rebuild: bool) -> bool:
+def run_schema_setup(reset: bool = False) -> bool:
+    from src.db import reset_schema, setup_schema
+
     try:
-        ensure_index(rebuild=rebuild)
+        if reset:
+            reset_schema()
+            console.print("[green]Database schema reset.[/green]")
+        else:
+            setup_schema()
+            console.print("[green]Database schema ready.[/green]")
     except Exception as e:
-        console.print(f"[bold red]Error during index setup:[/bold red] {e}")
+        console.print(f"[bold red]Error during schema setup:[/bold red] {e}")
         return False
 
     return True
@@ -190,14 +122,14 @@ def main() -> None:
         )
 
         if choice == "1":
-            run_index_setup(rebuild=True)
+            run_schema_setup()
         elif choice == "2":
-            clean_index()
+            run_schema_setup(reset=True)
         elif choice == "3":
-            if run_index_setup(rebuild=False):
+            if run_schema_setup():
                 run_chat_loop("plain RAG", run_rag_turn, token_key="usage")
         elif choice == "4":
-            if run_index_setup(rebuild=False):
+            if run_schema_setup():
                 run_chat_loop("agentic RAG", run_agent_turn, token_key="tokens")
         else:
             break

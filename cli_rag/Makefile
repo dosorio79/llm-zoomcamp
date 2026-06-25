@@ -39,7 +39,7 @@ db-logs:
 	docker logs --follow $(POSTGRES_CONTAINER)
 
 schema-setup:
-	uv run python -m src_new.indexing.postgres_backend setup
+	uv run python -m src.db.schema setup
 
 schema-reset:
-	uv run python -m src_new.indexing.postgres_backend reset
+	uv run python -m src.db.schema reset

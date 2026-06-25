@@ -13,7 +13,7 @@ from .utils import calculate_openai_price
 def build_agent_runner() -> OpenAIResponsesRunner:
     """
     Build and return an OpenAI agent runner with configured tools and prompts.
-    
+
     Returns:
         OpenAIResponsesRunner: Configured runner instance for executing agent loops.
     """
@@ -28,13 +28,13 @@ def build_agent_runner() -> OpenAIResponsesRunner:
     )
 
 
-def run_agent(question: str, previous_messages: list[Any] | None = None) -> dict:
+def run_agent(question: str, previous_messages: list[Any] | None = None) -> dict[str, Any]:
     """
     Execute the agent with a given question and return results.
-    
+
     Args:
         question: The question or prompt to send to the agent.
-        
+
     Returns:
         dict: Dictionary containing:
             - answer: The final message response
@@ -61,13 +61,14 @@ def run_agent(question: str, previous_messages: list[Any] | None = None) -> dict
         "messages": result.all_messages,
     }
 
-def ask_agent(question: str, previous_messages: list[Any] | None = None) -> dict:
+
+def ask_agent(question: str, previous_messages: list[Any] | None = None) -> dict[str, Any]:
     """
     Wrapper function to ask a question to the agent and get a response.
-    
+
     Args:
         question: The question or prompt to send to the agent.
-        
+
     Returns:
         dict: Dictionary containing the agent's response and metadata.
     """

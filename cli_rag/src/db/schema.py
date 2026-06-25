@@ -1,10 +1,9 @@
-"""PostgreSQL schema setup for the shared text and vector search backend."""
+"""PostgreSQL schema management for the shared search backend."""
 
 import argparse
 from collections.abc import Sequence
 
-import psycopg
-from psycopg import Connection, sql
+from psycopg import sql
 
 from ..config import (
     BM25_INDEX_NAME,
@@ -14,11 +13,7 @@ from ..config import (
     EMBEDDING_DIMENSION,
     VECTOR_INDEX_NAME,
 )
-
-
-def connect(database_url: str = DATABASE_URL) -> Connection:
-    """Open a PostgreSQL connection when a database operation is requested."""
-    return psycopg.connect(database_url)
+from .connection import connect
 
 
 def schema_statements() -> Sequence[sql.Composed]:

@@ -1,6 +1,6 @@
 """Retriever interfaces and PostgreSQL-backed strategy placeholders."""
 
-from .retriever import (
+from .retrievers import (
     BaseRetriever,
     HybridRetriever,
     SearchResult,

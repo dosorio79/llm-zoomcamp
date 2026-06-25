@@ -1,5 +1,18 @@
 from toyaikit.tools import Tools
-from .retrieval import search
+
+from .rag_pipeline import RetrieverMode, RAGPipeline
+
+
+def search(
+    query: str,
+    top_k: int = 5,
+    retriever_mode: RetrieverMode = "text",
+) -> list[dict]:
+    """
+    Search documents using the selected retriever mode.
+    """
+    pipeline = RAGPipeline(retriever_mode=retriever_mode)
+    return pipeline.retrieve(query=query, top_k=top_k)
 
 
 def get_tools():

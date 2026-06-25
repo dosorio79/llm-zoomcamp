@@ -1,9 +1,9 @@
-"""PostgreSQL schema management for text and vector search."""
+"""Database connection and schema management."""
 
 
 def setup_schema(database_url: str | None = None) -> None:
     """Create the shared PostgreSQL search schema."""
-    from .postgres_backend import setup_schema as setup
+    from .schema import setup_schema as setup
 
     if database_url is None:
         setup()
@@ -13,7 +13,7 @@ def setup_schema(database_url: str | None = None) -> None:
 
 def reset_schema(database_url: str | None = None) -> None:
     """Drop and recreate the shared PostgreSQL search schema."""
-    from .postgres_backend import reset_schema as reset
+    from .schema import reset_schema as reset
 
     if database_url is None:
         reset()

@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
 
-from src_new.retriever import (
+from src.retrieval import (
     BaseRetriever,
     HybridRetriever,
     TextRetriever,
