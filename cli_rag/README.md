@@ -1,9 +1,7 @@
 # CLI RAG
 
-Standalone terminal RAG app based on Homework 01.
-
-It can build a local lesson index and run either plain RAG or agentic RAG over
-the LLM Zoomcamp lesson markdown files.
+Standalone terminal RAG app based on Homework 01. The current implementation is
+being migrated to one PostgreSQL backend for BM25, vector, and hybrid retrieval.
 
 ## Setup
 
@@ -29,35 +27,12 @@ Set your OpenAI API key:
 OPENAI_API_KEY=your_openai_api_key_here
 ```
 
-## Run
+## PostgreSQL backend
 
-Start the CLI:
-
-```bash
-make run
-```
-
-The menu includes:
-
-- `Build / rebuild index`: fetch lesson markdown, chunk it, and write the local
-  SQLite search index
-- `Clean index`: remove the local SQLite search index
-- `Plain RAG`: retrieve once and answer with retrieved context
-- `Agentic RAG`: expose search as a tool and let the model decide when to use it
-- `Exit`: close the CLI
-
-Inside a chat loop, type `exit`, `quit`, or `stop` to return to the menu.
-
-The generated index is stored at:
-
-```text
-storage/chunk.db
-```
-
-## PostgreSQL backend scaffold
-
-The in-progress `src_new` package uses a shared PostgreSQL table for BM25 and
-vector search. Build and start PostgreSQL 17 with `pg_textsearch` and `pgvector`:
+The `src/db` package manages PostgreSQL connections and schema setup. The
+`src/retrieval` package contains the shared retriever contract and text, vector,
+and hybrid strategies. Build and start PostgreSQL 17 with `pg_textsearch` and
+`pgvector`:
 
 ```bash
 make db-build
@@ -79,3 +54,15 @@ make db-reset
 
 Connection settings default to the values in `.env.example` and can be
 overridden with `DATABASE_URL` and `DATABASE_SCHEMA`.
+
+## Run
+
+Start the CLI:
+
+```bash
+make run
+```
+
+The menu provides schema setup/reset and plain or agentic RAG entry points.
+Chunk insertion and retriever search SQL remain explicit placeholders while the
+PostgreSQL migration is in progress.
