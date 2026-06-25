@@ -1,16 +1,23 @@
+import os
+
+
 # Repository configuration parameters
 REPO_OWNER = "DataTalksClub"
 REPO_NAME = "llm-zoomcamp"
 COMMIT_ID = "8c1834d"
 ALLOWED_EXTENSIONS = {"md"}
 
-# Index configuration parameters
-INDEX_TEXT_FIELDS = ["content"]
-INDEX_KEYWORD_FIELDS = ["filename"]
-
 # Chunking configuration parameters
 CHUNK_SIZE = 2000
 CHUNK_STEP = 1000
 
 # Database configuration parameters
-TEXT_DB_PATH = "storage/chunk.db"
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql://postgres:postgres@localhost:5432/cli_rag",
+)
+DATABASE_SCHEMA = os.getenv("DATABASE_SCHEMA", "rag")
+CHUNKS_TABLE = "chunks"
+EMBEDDING_DIMENSION = 384
+BM25_INDEX_NAME = "chunks_content_bm25_idx"
+VECTOR_INDEX_NAME = "chunks_embedding_hnsw_idx"

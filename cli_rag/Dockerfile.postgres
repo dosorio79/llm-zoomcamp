@@ -1,0 +1,21 @@
+FROM pgvector/pgvector:0.8.3-pg17
+
+ARG TARGETARCH
+ARG PG_TEXTSEARCH_VERSION=1.2.0
+
+RUN set -eux; \
+    case "${TARGETARCH}" in \
+        amd64|arm64) package_arch="${TARGETARCH}" ;; \
+        *) echo "Unsupported architecture: ${TARGETARCH}" >&2; exit 1 ;; \
+    esac; \
+    apt-get update; \
+    apt-get install --yes --no-install-recommends ca-certificates curl unzip; \
+    package="pg-textsearch-v${PG_TEXTSEARCH_VERSION}-pg17-${package_arch}.zip"; \
+    curl --fail --location --silent --show-error \
+        "https://github.com/timescale/pg_textsearch/releases/download/v${PG_TEXTSEARCH_VERSION}/${package}" \
+        --output "/tmp/${package}"; \
+    unzip "/tmp/${package}" -d /tmp/pg_textsearch; \
+    apt-get install --yes /tmp/pg_textsearch/*.deb; \
+    rm -rf /tmp/pg_textsearch "/tmp/${package}" /var/lib/apt/lists/*
+
+CMD ["postgres", "-c", "shared_preload_libraries=pg_textsearch"]
