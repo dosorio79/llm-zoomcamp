@@ -53,3 +53,29 @@ The generated index is stored at:
 ```text
 storage/chunk.db
 ```
+
+## PostgreSQL backend scaffold
+
+The in-progress `src_new` package uses a shared PostgreSQL table for BM25 and
+vector search. Build and start PostgreSQL 17 with `pg_textsearch` and `pgvector`:
+
+```bash
+make db-build
+make db-start
+make schema-setup
+```
+
+The schema setup is idempotent. To recreate only the application schema:
+
+```bash
+make schema-reset
+```
+
+To remove the development container and its data volume:
+
+```bash
+make db-reset
+```
+
+Connection settings default to the values in `.env.example` and can be
+overridden with `DATABASE_URL` and `DATABASE_SCHEMA`.
