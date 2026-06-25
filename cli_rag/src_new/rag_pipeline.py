@@ -1,22 +1,21 @@
 """RAG retrieval pipeline orchestration."""
 
-from typing import Any, Literal, Protocol
+from typing import Any, Literal
 
 from openai import OpenAI
 
 from .prompts import INSTRUCTIONS, USER_PROMPT_TEMPLATE
-from .retriever.hybrid_retriever import HybridRetriever
-from .retriever.text_retriever import TextRetriever
-from .retriever.vector_retriever import VectorRetriever
+from .retriever import (
+    BaseRetriever,
+    HybridRetriever,
+    SearchResult,
+    TextRetriever,
+    VectorRetriever,
+)
 from .utils import calculate_openai_price
 
 
 RetrieverMode = Literal["text", "vector", "hybrid"]
-
-
-class Retriever(Protocol):
-    def search(self, query: str, top_k: int = 5) -> list[dict[str, Any]]:
-        """Search for documents matching the query."""
 
 
 class RAGPipeline:
@@ -37,7 +36,7 @@ class RAGPipeline:
         self.user_prompt_template = user_prompt_template
         self.model = model
 
-    def build_retriever(self, mode: RetrieverMode) -> Retriever:
+    def build_retriever(self, mode: RetrieverMode) -> BaseRetriever:
         if mode == "text":
             return TextRetriever()
 
@@ -45,20 +44,17 @@ class RAGPipeline:
             return VectorRetriever()
 
         if mode == "hybrid":
-            return HybridRetriever(
-                vector_retriever=VectorRetriever(),
-                text_retriever=TextRetriever(),
-            )
+            return HybridRetriever()
 
         raise ValueError(f"Unknown retriever mode: {mode}")
 
-    def retrieve(self, query: str, top_k: int = 5) -> list[dict[str, Any]]:
+    def retrieve(self, query: str, top_k: int = 5) -> list[SearchResult]:
         if not query or not query.strip():
             return []
 
         return self.retriever.search(query=query, top_k=top_k)
 
-    def build_context(self, search_results: list[dict[str, Any]]) -> str:
+    def build_context(self, search_results: list[SearchResult]) -> str:
         lines = []
 
         for doc in search_results:
@@ -71,7 +67,7 @@ class RAGPipeline:
     def build_prompt(
         self,
         question: str,
-        search_results: list[dict[str, Any]],
+        search_results: list[SearchResult],
     ) -> str:
         context = self.build_context(search_results)
 
