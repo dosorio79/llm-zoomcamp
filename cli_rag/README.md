@@ -1,5 +1,7 @@
 # CLI RAG
 
+[![CLI RAG tests](https://github.com/dosorio79/llm-zoomcamp/actions/workflows/cli-rag-tests.yml/badge.svg?branch=dev)](https://github.com/dosorio79/llm-zoomcamp/actions/workflows/cli-rag-tests.yml)
+
 Standalone terminal RAG app based on Homework 01. The current implementation is
 being migrated to one PostgreSQL backend for BM25, vector, and hybrid retrieval.
 
