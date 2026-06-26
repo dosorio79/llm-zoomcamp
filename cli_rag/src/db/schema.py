@@ -16,7 +16,7 @@ from ..config import (
 from .connection import connect
 
 
-def schema_statements() -> Sequence[sql.Composed]:
+def schema_statements() -> Sequence[sql.SQL | sql.Composed]:
     """Return the idempotent DDL statements for the shared chunks backend."""
     schema = sql.Identifier(DATABASE_SCHEMA)
     table = sql.Identifier(CHUNKS_TABLE)

@@ -6,13 +6,19 @@ POSTGRES_DB ?= cli_rag
 POSTGRES_USER ?= postgres
 POSTGRES_PASSWORD ?= postgres
 
-.PHONY: run test db-build db-start db-stop db-reset db-logs schema-setup schema-reset
+.PHONY: run test model-download ingest db-build db-start db-stop db-reset db-logs schema-setup schema-reset
 
 run:
 	uv run python main.py
 
 test:
 	uv run python -m unittest discover -s tests
+
+model-download:
+	uv run python -m src.embed.download
+
+ingest:
+	uv run python -m src.ingestion
 
 db-build:
 	docker build -f Dockerfile.postgres -t $(POSTGRES_IMAGE) .
