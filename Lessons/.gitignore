@@ -40,6 +40,7 @@ env/
 
 # Storage folder
 storage/
+models/
 
 # Logs
 *.log
