@@ -2,8 +2,29 @@
 
 [![CLI RAG tests](https://github.com/dosorio79/llm-zoomcamp/actions/workflows/cli-rag-tests.yml/badge.svg?branch=dev)](https://github.com/dosorio79/llm-zoomcamp/actions/workflows/cli-rag-tests.yml)
 
-Standalone terminal RAG app based on Homework 01. The current implementation is
-being migrated to one PostgreSQL backend for BM25, vector, and hybrid retrieval.
+Standalone terminal RAG app based on Homework 01. It uses one PostgreSQL backend
+for BM25, vector, and hybrid retrieval.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    Repo[GitHub lessons] --> Ingest[Ingestion]
+    Ingest --> Embed[Local ONNX embedder]
+    Ingest --> Store[(PostgreSQL chunks)]
+    Embed --> Store
+    Store --> BM25[BM25 index]
+    Store --> HNSW[pgvector HNSW index]
+
+    CLI[Terminal CLI] --> Plain[Plain RAG]
+    CLI --> Agent[Agentic RAG]
+    Agent --> Tools[Search tool]
+    Plain --> Retriever{Retriever mode}
+    Tools --> Retriever
+    Retriever --> BM25
+    Retriever --> HNSW
+    Retriever --> LLM[OpenAI response]
+```
 
 ## Setup
 
@@ -72,11 +93,11 @@ Start the CLI:
 make run
 ```
 
-The menu provides one reset/rebuild action for the knowledge store, plus plain
-and agentic RAG entry points. Resetting the knowledge store drops the indexed
+The menu provides one rebuild action for the knowledge store, plus plain
+and agentic RAG entry points. Rebuilding the knowledge store drops the indexed
 chunks, recreates the schema, and ingests the configured repository again.
 For plain and agentic RAG, choose one retrieval mode before starting chat:
 
-- text / BM25
-- vector / embeddings
-- hybrid / BM25 + vector
+- Text / BM25: keyword-based retrieval with PostgreSQL BM25.
+- Vector: semantic retrieval with local ONNX embeddings and pgvector.
+- Hybrid: combines BM25 and vector rankings with rank fusion.
