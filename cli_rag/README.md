@@ -38,6 +38,8 @@ and hybrid strategies. Build and start PostgreSQL 17 with `pg_textsearch` and
 make db-build
 make db-start
 make schema-setup
+make model-download
+make ingest
 ```
 
 The schema setup is idempotent. To recreate only the application schema:
@@ -55,6 +57,11 @@ make db-reset
 Connection settings default to the values in `.env.example` and can be
 overridden with `DATABASE_URL` and `DATABASE_SCHEMA`.
 
+`make model-download` downloads the local ONNX embedding model once. Then
+`make ingest` downloads the configured repository revision, creates overlapping
+chunks, embeds them, and upserts them into the shared `chunks` table. Rerunning
+it refreshes existing rows identified by `(filename, start)`.
+
 ## Run
 
 Start the CLI:
@@ -63,6 +70,11 @@ Start the CLI:
 make run
 ```
 
-The menu provides schema setup/reset and plain or agentic RAG entry points.
-Chunk insertion and retriever search SQL remain explicit placeholders while the
-PostgreSQL migration is in progress.
+The menu provides one reset/rebuild action for the knowledge store, plus plain
+and agentic RAG entry points. Resetting the knowledge store drops the indexed
+chunks, recreates the schema, and ingests the configured repository again.
+For plain and agentic RAG, choose one retrieval mode before starting chat:
+
+- text / BM25
+- vector / embeddings
+- hybrid / BM25 + vector

@@ -1,4 +1,5 @@
 from decimal import Decimal
+from typing import Any
 from typing import TypedDict
 
 
@@ -44,7 +45,7 @@ def calculate_openai_price(
     model_prices: dict[str, ModelPrice] | None = None,
     input_price: Decimal | float | int | str | None = None,
     output_price: Decimal | float | int | str | None = None,
-) -> dict:
+) -> dict[str, Any]:
     """
     Calculate OpenAI API cost for a model.
 

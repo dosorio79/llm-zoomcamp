@@ -1,4 +1,5 @@
 from decimal import Decimal, InvalidOperation
+from typing import Callable
 
 from rich.console import Console
 from rich.markdown import Markdown
@@ -42,7 +43,7 @@ def get_metadata_value(data: object, key: str) -> object | None:
 def print_rows_panel(
     title: str,
     rows: list[tuple[str, object | None]],
-    formatter=str,
+    formatter: Callable[[object], str] = str,
 ) -> None:
     table = Table.grid(padding=(0, 2))
     table.add_column(style="green")
