@@ -30,7 +30,7 @@ class RAGPipeline:
         model: str = "gpt-5.4-mini",
     ) -> None:
         self.retriever_mode = retriever_mode
-        self.retriever = self.build_retriever(retriever_mode)
+        self.retriever: Any = self.build_retriever(retriever_mode)
         self.llm_client = llm_client
         self.instructions = instructions
         self.user_prompt_template = user_prompt_template
@@ -49,9 +49,6 @@ class RAGPipeline:
         raise ValueError(f"Unknown retriever mode: {mode}")
 
     def retrieve(self, query: str, top_k: int = 5) -> list[SearchResult]:
-        if not query or not query.strip():
-            return []
-
         return self.retriever.search(query=query, top_k=top_k)
 
     def build_context(self, search_results: list[SearchResult]) -> str:
@@ -77,7 +74,7 @@ class RAGPipeline:
         ).strip()
 
     def generate_response(self, prompt: str):
-        messages = [
+        messages: Any = [
             {"role": "developer", "content": self.instructions},
             {"role": "user", "content": prompt},
         ]
@@ -120,7 +117,7 @@ class RAGPipeline:
 
         return "\n".join(texts)
 
-    def _get_response_usage(self, response) -> dict[str, int]:
+    def _get_response_usage(self, response) -> dict[str, Any]:
         if response.usage is None:
             return {}
 

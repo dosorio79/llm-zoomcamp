@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, cast
 
 from .prompts import INSTRUCTIONS_AGENT
 
@@ -6,11 +6,14 @@ from openai import OpenAI
 from toyaikit.llm import OpenAIClient
 from toyaikit.chat.runners import OpenAIResponsesRunner
 
+from .rag_pipeline import RetrieverMode
 from .tools import get_tools
 from .utils import calculate_openai_price
 
 
-def build_agent_runner() -> OpenAIResponsesRunner:
+def build_agent_runner(
+    retriever_mode: RetrieverMode = "text",
+) -> OpenAIResponsesRunner:
     """
     Build and return an OpenAI agent runner with configured tools and prompts.
 
@@ -18,9 +21,9 @@ def build_agent_runner() -> OpenAIResponsesRunner:
         OpenAIResponsesRunner: Configured runner instance for executing agent loops.
     """
     return OpenAIResponsesRunner(
-        tools=get_tools(),
+        tools=get_tools(default_retriever_mode=retriever_mode),
         developer_prompt=INSTRUCTIONS_AGENT,
-        chat_interface=None,  # type: ignore
+        chat_interface=cast(Any, None),
         llm_client=OpenAIClient(
             model="gpt-5.4-mini",
             client=OpenAI(),
@@ -28,7 +31,11 @@ def build_agent_runner() -> OpenAIResponsesRunner:
     )
 
 
-def run_agent(question: str, previous_messages: list[Any] | None = None) -> dict[str, Any]:
+def run_agent(
+    question: str,
+    previous_messages: list[Any] | None = None,
+    retriever_mode: RetrieverMode = "text",
+) -> dict[str, Any]:
     """
     Execute the agent with a given question and return results.
 
@@ -42,12 +49,12 @@ def run_agent(question: str, previous_messages: list[Any] | None = None) -> dict
             - cost: Cost of the API calls
             - messages: All messages in the conversation
     """
-    runner = build_agent_runner()
+    runner = build_agent_runner(retriever_mode=retriever_mode)
 
     result = runner.loop(
         prompt=question,
         previous_messages=previous_messages or [],
-        callback=None,  # type: ignore
+        callback=cast(Any, None),
     )
 
     return {
@@ -62,7 +69,11 @@ def run_agent(question: str, previous_messages: list[Any] | None = None) -> dict
     }
 
 
-def ask_agent(question: str, previous_messages: list[Any] | None = None) -> dict[str, Any]:
+def ask_agent(
+    question: str,
+    previous_messages: list[Any] | None = None,
+    retriever_mode: RetrieverMode = "text",
+) -> dict[str, Any]:
     """
     Wrapper function to ask a question to the agent and get a response.
 
@@ -72,4 +83,8 @@ def ask_agent(question: str, previous_messages: list[Any] | None = None) -> dict
     Returns:
         dict: Dictionary containing the agent's response and metadata.
     """
-    return run_agent(question, previous_messages=previous_messages)
+    return run_agent(
+        question,
+        previous_messages=previous_messages,
+        retriever_mode=retriever_mode,
+    )
