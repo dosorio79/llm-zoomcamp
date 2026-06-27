@@ -23,6 +23,23 @@ class FakeRetriever:
 
 
 class RAGPipelineTests(unittest.TestCase):
+    def test_build_context_includes_citable_source_labels(self) -> None:
+        pipeline = RAGPipeline()
+
+        context = pipeline.build_context(
+            [
+                {
+                    "id": 1,
+                    "filename": "lesson.md",
+                    "start": 42,
+                    "content": "Course content",
+                    "score": 1.0,
+                }
+            ]
+        )
+
+        self.assertEqual(context, "Source: lesson.md:42\nContent: Course content")
+
     def test_retrieve_delegates_to_retriever_search(self) -> None:
         pipeline = RAGPipeline()
         retriever = FakeRetriever()

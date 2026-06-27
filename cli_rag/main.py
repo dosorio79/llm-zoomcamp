@@ -26,7 +26,7 @@ ENV_PATHS = [
     APP_DIR.parent / "Lessons" / ".env",
 ]
 MENU_CHOICES = {
-    "1": "Reset knowledge store",
+    "1": "Rebuild knowledge store",
     "2": "Plain RAG",
     "3": "Agentic RAG",
     "4": "Exit",
@@ -234,10 +234,10 @@ def run_knowledge_store_reset() -> bool:
     from src.db import reset_schema
 
     if not Confirm.ask(
-        "[bold red]This will erase indexed chunks and rebuild the store. Continue?[/bold red]",
+        "[bold red]This will drop and recreate the indexed chunks, then rebuild the knowledge store. Continue?[/bold red]",
         default=False,
     ):
-        console.print("[yellow]Reset cancelled.[/yellow]")
+        console.print("[yellow]Rebuild cancelled.[/yellow]")
         return False
 
     try:

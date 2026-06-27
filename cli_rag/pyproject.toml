@@ -1,9 +1,9 @@
 [project]
 name = "cli-rag"
 version = "0.1.0"
-description = "Add your description here"
+description = "Terminal RAG app with PostgreSQL BM25, vector, hybrid, and agentic retrieval modes"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 dependencies = [
     "gitsource>=0.0.5",
     "numpy>=2.4.6",
@@ -19,4 +19,8 @@ dependencies = [
 [dependency-groups]
 dev = [
     "huggingface-hub>=1.21.0",
+    "pytest>=9.1.1",
 ]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

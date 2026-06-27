@@ -55,7 +55,7 @@ class RAGPipeline:
         lines = []
 
         for doc in search_results:
-            lines.append(f"Filename: {doc['filename']}")
+            lines.append(f"Source: {doc['filename']}:{doc['start']}")
             lines.append(f"Content: {doc['content']}")
             lines.append("")
 
