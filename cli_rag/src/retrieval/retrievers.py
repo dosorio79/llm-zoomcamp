@@ -125,31 +125,40 @@ class VectorRetriever(BaseRetriever):
 
 
 class HybridRetriever(BaseRetriever):
-    """Combine text and vector results with reciprocal-rank fusion."""
+    """Combine text and vector retrieval using Reciprocal Rank Fusion (RRF).
+
+    Each retriever returns an expanded candidate set, which is fused using
+    1/(k+rank) scoring before returning the final top-k results.
+    """
 
     def __init__(
         self,
         database_url: str = DATABASE_URL,
         text_retriever: Any | None = None,
         vector_retriever: Any | None = None,
+        rrf_k: int = 60,
+        candidate_multiplier: int = 3,
     ) -> None:
         super().__init__(database_url=database_url)
         self.text_retriever = text_retriever or TextRetriever(database_url)
         self.vector_retriever = vector_retriever or VectorRetriever(database_url)
+        self.rrf_k = rrf_k
+        self.candidate_multiplier = candidate_multiplier
 
     def _search(self, query: str, top_k: int) -> list[SearchResult]:
         candidates: dict[int, SearchResult] = {}
+        candidate_k = max(top_k * self.candidate_multiplier, top_k)
 
         for results in (
-            self.text_retriever.search(query, top_k=top_k),
-            self.vector_retriever.search(query, top_k=top_k),
+            self.text_retriever.search(query, top_k=candidate_k),
+            self.vector_retriever.search(query, top_k=candidate_k),
         ):
             for rank, result in enumerate(results, start=1):
                 document_id = result["id"]
                 if document_id not in candidates:
                     candidates[document_id] = {**result, "score": 0.0}
 
-                candidates[document_id]["score"] += 1 / rank
+                candidates[document_id]["score"] += 1 / (self.rrf_k + rank)
 
         return sorted(
             candidates.values(),
