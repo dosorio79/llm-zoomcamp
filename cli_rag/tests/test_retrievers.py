@@ -183,10 +183,12 @@ class RetrieverScaffoldTests(unittest.TestCase):
             vector_retriever=vector_retriever,
         ).search("postgres", top_k=2)
 
-        self.assertEqual(text_retriever.calls, [("postgres", 2)])
-        self.assertEqual(vector_retriever.calls, [("postgres", 2)])
+        candidate_k = 2 * 3
+        self.assertEqual(text_retriever.calls, [("postgres", candidate_k)])
+        self.assertEqual(vector_retriever.calls, [("postgres", candidate_k)])
         self.assertEqual([result["id"] for result in results], [2, 1])
-        self.assertEqual(results[0]["score"], 1.5)
+        expected_score = 1 / (60 + 2) + 1 / (60 + 1)
+        self.assertAlmostEqual(results[0]["score"], expected_score)
 
     def test_construction_does_not_open_a_database_connection(self) -> None:
         with patch("psycopg.connect") as connect:
