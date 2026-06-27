@@ -101,3 +101,7 @@ For plain and agentic RAG, choose one retrieval mode before starting chat:
 - Text / BM25: keyword-based retrieval with PostgreSQL BM25.
 - Vector: semantic retrieval with local ONNX embeddings and pgvector.
 - Hybrid: combines BM25 and vector rankings with rank fusion.
+
+Answers are rendered as Markdown in the terminal. When an answer uses retrieved
+course information, it ends with a `Sources:` line containing citations in the
+`[filename:start]` format.
