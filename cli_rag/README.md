@@ -23,6 +23,8 @@ flowchart LR
     Tools --> Retriever
     Retriever --> BM25
     Retriever --> HNSW
+    Retriever --> Reranker[Optional ONNX cross-encoder reranker]
+    Reranker --> LLM
     Retriever --> LLM[OpenAI response]
 ```
 
@@ -62,6 +64,7 @@ make db-build
 make db-start
 make schema-setup
 make model-download
+make reranker-download
 make ingest
 ```
 
@@ -80,7 +83,9 @@ make db-reset
 Connection settings default to the values in `.env.example` and can be
 overridden with `DATABASE_URL` and `DATABASE_SCHEMA`.
 
-`make model-download` downloads the local ONNX embedding model once. Then
+`make model-download` downloads the local ONNX embedding model once.
+`make reranker-download` downloads the optional ONNX cross-encoder reranker.
+Then
 `make ingest` downloads the configured repository revision, creates overlapping
 chunks, embeds them, and upserts them into the shared `chunks` table. Rerunning
 it refreshes existing rows identified by `(filename, start)`.
@@ -101,6 +106,11 @@ For plain and agentic RAG, choose one retrieval mode before starting chat:
 - Text / BM25: keyword-based retrieval with PostgreSQL BM25.
 - Vector: semantic retrieval with local ONNX embeddings and pgvector.
 - Hybrid: combines BM25 and vector rankings with rank fusion.
+
+You can also enable cross-encoder reranking after choosing a retrieval mode.
+Reranking fetches an expanded candidate set from the selected retriever, scores
+the query/chunk pairs locally with ONNX Runtime, and sends only the reranked
+top results to the LLM.
 
 Answers are rendered as Markdown in the terminal. When an answer uses retrieved
 course information, it ends with a `Sources:` line containing citations in the

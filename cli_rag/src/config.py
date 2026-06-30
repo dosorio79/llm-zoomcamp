@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 
 # Repository configuration parameters
@@ -21,3 +22,15 @@ CHUNKS_TABLE = "chunks"
 EMBEDDING_DIMENSION = 384
 BM25_INDEX_NAME = "chunks_content_bm25_idx"
 VECTOR_INDEX_NAME = "chunks_embedding_hnsw_idx"
+
+# Reranking configuration parameters
+RERANKER_MODEL_REPO = "Xenova/ms-marco-MiniLM-L-6-v2"
+RERANKER_MODEL_PATH = os.getenv(
+    "RERANKER_MODEL_PATH",
+    str(
+        Path(__file__).resolve().parent
+        / "rerank"
+        / "models"
+        / RERANKER_MODEL_REPO
+    ),
+)

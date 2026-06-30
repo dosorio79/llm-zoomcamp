@@ -6,7 +6,7 @@ POSTGRES_DB ?= cli_rag
 POSTGRES_USER ?= postgres
 POSTGRES_PASSWORD ?= postgres
 
-.PHONY: run test model-download ingest db-build db-start db-stop db-reset db-logs schema-setup schema-reset
+.PHONY: run test model-download reranker-download ingest db-build db-start db-stop db-reset db-logs schema-setup schema-reset
 
 run:
 	uv run python main.py
@@ -16,6 +16,9 @@ test:
 
 model-download:
 	uv run python -m src.embed.download
+
+reranker-download:
+	uv run python -m src.rerank.download
 
 ingest:
 	uv run python -m src.ingestion

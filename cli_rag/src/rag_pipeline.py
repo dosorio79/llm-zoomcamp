@@ -5,6 +5,7 @@ from typing import Any, Literal
 from openai import OpenAI
 
 from .prompts import INSTRUCTIONS, USER_PROMPT_TEMPLATE
+from .rerank import CrossEncoderReranker
 from .retrieval import (
     BaseRetriever,
     HybridRetriever,
@@ -28,6 +29,9 @@ class RAGPipeline:
         instructions: str = INSTRUCTIONS,
         user_prompt_template: str = USER_PROMPT_TEMPLATE,
         model: str = "gpt-5.4-mini",
+        rerank: bool = False,
+        reranker: Any | None = None,
+        rerank_candidate_multiplier: int = 5,
     ) -> None:
         self.retriever_mode = retriever_mode
         self.retriever: Any = self.build_retriever(retriever_mode)
@@ -35,6 +39,9 @@ class RAGPipeline:
         self.instructions = instructions
         self.user_prompt_template = user_prompt_template
         self.model = model
+        self.rerank = rerank
+        self.reranker = reranker
+        self.rerank_candidate_multiplier = rerank_candidate_multiplier
 
     def build_retriever(self, mode: RetrieverMode) -> BaseRetriever:
         if mode == "text":
@@ -49,7 +56,16 @@ class RAGPipeline:
         raise ValueError(f"Unknown retriever mode: {mode}")
 
     def retrieve(self, query: str, top_k: int = 5) -> list[SearchResult]:
-        return self.retriever.search(query=query, top_k=top_k)
+        if not self.rerank:
+            return self.retriever.search(query=query, top_k=top_k)
+
+        candidate_k = max(top_k * self.rerank_candidate_multiplier, top_k)
+        candidates = self.retriever.search(query=query, top_k=candidate_k)
+        if not candidates:
+            return []
+
+        reranker = self.reranker or CrossEncoderReranker()
+        return reranker.rerank(query=query, results=candidates, top_k=top_k)
 
     def build_context(self, search_results: list[SearchResult]) -> str:
         lines = []
@@ -134,7 +150,8 @@ def ask_rag(
     question: str,
     top_k: int = 5,
     retriever_mode: RetrieverMode = "text",
+    rerank: bool = False,
 ) -> dict[str, Any]:
     """Ask the RAG pipeline a question."""
-    pipeline = RAGPipeline(retriever_mode=retriever_mode)
+    pipeline = RAGPipeline(retriever_mode=retriever_mode, rerank=rerank)
     return pipeline.run(query=question, top_k=top_k)

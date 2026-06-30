@@ -13,6 +13,7 @@ from .utils import calculate_openai_price
 
 def build_agent_runner(
     retriever_mode: RetrieverMode = "text",
+    rerank: bool = False,
 ) -> OpenAIResponsesRunner:
     """
     Build and return an OpenAI agent runner with configured tools and prompts.
@@ -21,7 +22,7 @@ def build_agent_runner(
         OpenAIResponsesRunner: Configured runner instance for executing agent loops.
     """
     return OpenAIResponsesRunner(
-        tools=get_tools(default_retriever_mode=retriever_mode),
+        tools=get_tools(default_retriever_mode=retriever_mode, default_rerank=rerank),
         developer_prompt=INSTRUCTIONS_AGENT,
         chat_interface=cast(Any, None),
         llm_client=OpenAIClient(
@@ -35,6 +36,7 @@ def run_agent(
     question: str,
     previous_messages: list[Any] | None = None,
     retriever_mode: RetrieverMode = "text",
+    rerank: bool = False,
 ) -> dict[str, Any]:
     """
     Execute the agent with a given question and return results.
@@ -49,7 +51,7 @@ def run_agent(
             - cost: Cost of the API calls
             - messages: All messages in the conversation
     """
-    runner = build_agent_runner(retriever_mode=retriever_mode)
+    runner = build_agent_runner(retriever_mode=retriever_mode, rerank=rerank)
 
     result = runner.loop(
         prompt=question,
@@ -73,6 +75,7 @@ def ask_agent(
     question: str,
     previous_messages: list[Any] | None = None,
     retriever_mode: RetrieverMode = "text",
+    rerank: bool = False,
 ) -> dict[str, Any]:
     """
     Wrapper function to ask a question to the agent and get a response.
@@ -87,4 +90,5 @@ def ask_agent(
         question,
         previous_messages=previous_messages,
         retriever_mode=retriever_mode,
+        rerank=rerank,
     )

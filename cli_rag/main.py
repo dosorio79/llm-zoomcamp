@@ -82,16 +82,23 @@ def choose_retriever_mode() -> RetrieverMode:
     return cast(RetrieverMode, RETRIEVER_CHOICES[choice])
 
 
-def build_rag_turn(retriever_mode: RetrieverMode) -> TurnFunction:
+def choose_rerank() -> bool:
+    return Confirm.ask(
+        "[bold]Enable cross-encoder reranking?[/bold]",
+        default=False,
+    )
+
+
+def build_rag_turn(retriever_mode: RetrieverMode, rerank: bool = False) -> TurnFunction:
     def run_rag_turn(question: str, history: ChatHistory) -> ChatResult:
         from src.rag_pipeline import ask_rag
 
-        return ask_rag(question, retriever_mode=retriever_mode), history
+        return ask_rag(question, retriever_mode=retriever_mode, rerank=rerank), history
 
     return run_rag_turn
 
 
-def build_agent_turn(retriever_mode: RetrieverMode) -> TurnFunction:
+def build_agent_turn(retriever_mode: RetrieverMode, rerank: bool = False) -> TurnFunction:
     def run_agent_turn(question: str, history: ChatHistory) -> ChatResult:
         from src.agent import ask_agent
 
@@ -99,6 +106,7 @@ def build_agent_turn(retriever_mode: RetrieverMode) -> TurnFunction:
             question=question,
             previous_messages=history if isinstance(history, list) else None,
             retriever_mode=retriever_mode,
+            rerank=rerank,
         )
         return result, result.get("messages")
 
@@ -269,17 +277,19 @@ def main() -> None:
         elif choice == "2":
             if run_schema_setup():
                 retriever_mode = choose_retriever_mode()
+                rerank = choose_rerank()
                 run_chat_loop(
-                    f"plain RAG ({retriever_mode})",
-                    build_rag_turn(retriever_mode),
+                    f"plain RAG ({retriever_mode}{', reranked' if rerank else ''})",
+                    build_rag_turn(retriever_mode, rerank=rerank),
                     token_key="usage",
                 )
         elif choice == "3":
             if run_schema_setup():
                 retriever_mode = choose_retriever_mode()
+                rerank = choose_rerank()
                 run_chat_loop(
-                    f"agentic RAG ({retriever_mode})",
-                    build_agent_turn(retriever_mode),
+                    f"agentic RAG ({retriever_mode}{', reranked' if rerank else ''})",
+                    build_agent_turn(retriever_mode, rerank=rerank),
                     token_key="tokens",
                 )
         else:
