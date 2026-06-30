@@ -87,14 +87,14 @@ Roughly how many times more output tokens does the long summary use?
 **Options:**
 
 - [ ] About the same (within 20%)
-- [ ] 2-5x more
+- [x] 2-5x more
 - [ ] 10-20x more
 - [ ] 50x more
 
 **Answer:** `<SELECTED_OPTION>`
 
 **Logged values:**
-
+179
 ```text
 Short summary output tokens: <SHORT_OUTPUT_TOKEN_COUNT>
 Long summary output tokens:  <LONG_OUTPUT_TOKEN_COUNT>
@@ -119,7 +119,7 @@ How do they compare?
 
 **Options:**
 
-- [ ] About the same (within 20%)
+- [x] About the same (within 20%)
 - [ ] 2-4x more
 - [ ] 5-10x more
 - [ ] 10x+ more
@@ -127,11 +127,12 @@ How do they compare?
 **Answer:** `<SELECTED_OPTION>`
 
 **Logged values:**
+190
 
 ```text
-Original 1-sentence output tokens: <ONE_SENTENCE_OUTPUT_TOKEN_COUNT>
-Modified 3-sentence output tokens: <THREE_SENTENCE_OUTPUT_TOKEN_COUNT>
-Ratio:                            <THREE_SENTENCE / ONE_SENTENCE>
+Original 1-sentence output tokens: 179
+Modified 3-sentence output tokens: 190
+Ratio:                            1.06
 ```
 
 **Notes / evidence:**
