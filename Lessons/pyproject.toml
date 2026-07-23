@@ -18,3 +18,8 @@ dependencies = [
     "streamlit>=1.59.1",
     "toyaikit>=0.0.11",
 ]
+
+[tool.uv.workspace]
+members = [
+    "06_dlt",
+]
